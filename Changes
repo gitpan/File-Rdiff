@@ -1,0 +1,5 @@
+Revision history for Perl extension File::Rdiff
+
+0.01  Thu Mar 21 13:07:31 CET 2002
+	- initial version; done by cp -Rvp
+
