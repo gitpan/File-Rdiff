@@ -1,6 +1,6 @@
 =head1 NAME
 
-File::Rdiff
+File::Rdiff -- generate remote signatures and patch files using librsync
 
 =head1 SYNOPSIS
 
@@ -22,7 +22,7 @@ package File::Rdiff;
 require DynaLoader;
 require Exporter;
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 @ISA = qw/DynaLoader Exporter/;
 
 bootstrap File::Rdiff $VERSION;
@@ -196,8 +196,8 @@ L<File::Rsync>, L<rdiff1> (usage example using simple file API), L<rdiff2> (exam
 
 =head1 AUTHOR
 
- Marc Lehmann <pcg@goof.com>
- http://www.goof.com/pcg/marc/
+ Marc Lehmann <schmorp@schmorp.de>
+ http://home.schmorp.de/
 
 =cut
 

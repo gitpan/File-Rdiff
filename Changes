@@ -1,5 +1,11 @@
 Revision history for Perl extension File::Rdiff
 
+0.02  Thu Mar  3 18:00:52 CET 2005
+	- change of contact address.
+	- small cleanups. found out that librsync is rather broken
+          unless patched. unfortunately, lost the patch and it's been
+          one year, so I forgot it, too....
+
 0.01  Thu Mar 21 13:07:31 CET 2002
 	- initial version; done by cp -Rvp
 

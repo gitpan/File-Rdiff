@@ -1,5 +1,5 @@
 NAME
-    File::Rdiff
+    File::Rdiff -- generate remote signatures and patch files using librsync
 
 SYNOPSIS
      use File::Rdiff
@@ -133,6 +133,6 @@ BUGS
     - documentation leaves much to be deserved.
 
 AUTHOR
-     Marc Lehmann <pcg@goof.com>
-     http://www.goof.com/pcg/marc/
+     Marc Lehmann <schmorp@schmorp.de>
+     http://home.schmorp.de/
 
