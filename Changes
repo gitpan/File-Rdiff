@@ -1,5 +1,10 @@
 Revision history for Perl extension File::Rdiff
 
+1.0  Thu Jul 24 23:04:55 CEST 2008
+	- update to newer librsync renaming it's header file, reported
+          by Reini Urban.
+        - added examples to documentation.
+
 0.02  Thu Mar  3 18:00:52 CET 2005
 	- change of contact address.
 	- small cleanups. found out that librsync is rather broken

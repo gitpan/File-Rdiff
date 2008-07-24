@@ -8,10 +8,10 @@ File::Rdiff -- generate remote signatures and patch files using librsync
 
 =head1 DESCRIPTION
 
-A more-or-less direct interface to librsync (L<http://rproxy.samba.org>).
+A more-or-less direct interface to librsync (L<http://librsync.sourceforge.net/>).
 
 For usage examples (better than this very sparse documentation), see the
-two example scripts rdiff1 and rdiff2 that came with the distribution.
+two example scripts below.
 
 =over 4
 
@@ -22,7 +22,7 @@ package File::Rdiff;
 require DynaLoader;
 require Exporter;
 
-$VERSION = 0.02;
+$VERSION = '1.0';
 @ISA = qw/DynaLoader Exporter/;
 
 bootstrap File::Rdiff $VERSION;
@@ -179,6 +179,131 @@ the operation failed.
 Only valid for C<new_loadsig>, so look there.
 
 =back
+
+=head1 EXAMPLE PROGRAM ONE
+
+Very simple program that mimics librsync's rdiff, using the simple file
+utility functions. see example below for the same program, written using
+the nonblocking API.
+
+   #!/usr/bin/perl
+
+   use File::Rdiff qw(:trace :file);
+
+   trace_level(LOG_INFO);
+
+   if ($ARGV[0] eq "signature") {
+      open $base, "<$ARGV[1]" or die "$ARGV[1]: $!";
+      open $sig,  ">$ARGV[2]" or die "$ARGV[2]: $!";
+
+      File::Rdiff::sig_file $base, $sig;
+   } elsif ($ARGV[0] eq "delta") {
+      open $sig,   "<$ARGV[1]" or die "$ARGV[1]: $!";
+      open $new,   "<$ARGV[2]" or die "$ARGV[2]: $!";
+      open $delta, ">$ARGV[3]" or die "$ARGV[3]: $!";
+
+      $sig = loadsig_file $sig;
+
+      ref $sig or exit 1;
+
+      $sig->build_hash_table;
+
+      File::Rdiff::delta_file $sig, $new, $delta;
+   } elsif ($ARGV[0] eq "patch") {
+      open $base,  "<$ARGV[1]" or die "$ARGV[1]: $!";
+      open $delta, "<$ARGV[2]" or die "$ARGV[2]: $!";
+      open $new,   ">$ARGV[3]" or die "$ARGV[3]: $!";
+
+      File::Rdiff::patch_file $base, $delta, $new;
+   } else {
+      print <<EOF;
+   $0 signature BASE SIGNATURE
+   $0 delta SIGNATURE NEW DELTA
+   $0 patch BASE DELTA NEW
+   EOF
+      exit (1);
+   }
+
+=head1 EXAMPLE PROGRAM TWO
+
+Same as above, but written using the callback-based, "nonblocking", API.
+
+   #!/usr/bin/perl
+
+   use File::Rdiff qw(:trace :nonblocking);
+
+   trace_level(LOG_INFO);
+
+   if ($ARGV[0] eq "signature") {
+      open $basis, "<", $ARGV[1]
+         or die "$ARGV[1]: $!";
+      open $sig, ">", $ARGV[2]
+         or die "$ARGV[2]: $!";
+
+      my $job = new_sig File::Rdiff::Job 128;
+      my $buf = new File::Rdiff::Buffers 4096;
+
+      while ($job->iter($buf) == BLOCKED) {
+         # fetch more input data
+         $buf->avail_in or do {
+            my $in;
+            65536 == sysread $basis, $in, 65536 or $buf->eof;
+            $buf->in($in);
+         };
+         print $sig $buf->out;
+      }
+      print $sig $buf->out;
+
+   } elsif ($ARGV[0] eq "delta") {
+      open $sig,   "<$ARGV[1]" or die "$ARGV[1]: $!";
+      open $new,   "<$ARGV[2]" or die "$ARGV[2]: $!";
+      open $delta, ">$ARGV[3]" or die "$ARGV[3]: $!";
+
+      # first load the signature into memory
+      my $job = new_loadsig File::Rdiff::Job;
+      my $buf = new File::Rdiff::Buffers 0;
+
+      do {
+         $buf->avail_in or do {
+            my $in;
+            65536 == sysread $sig, $in, 65536 or $buf->eof;
+            $buf->in($in);
+         };
+      } while $job->iter($buf) == BLOCKED;
+
+      $sig = $job->signature;
+
+      $sig->build_hash_table;
+
+      # now create the delta file
+      my $job = new_delta File::Rdiff::Job $sig;
+      my $buf = new File::Rdiff::Buffers 65536;
+
+      do {
+         $buf->avail_in or do {
+            my $in;
+            65536 == sysread $new, $in, 65536 or $buf->eof;
+            $buf->in($in);
+         };
+         print $delta $buf->out;
+      } while $job->iter($buf) == BLOCKED;
+      print $delta $buf->out;
+
+   } elsif ($ARGV[0] eq "patch") {
+      open $base,  "<$ARGV[1]" or die "$ARGV[1]: $!";
+      open $delta, "<$ARGV[2]" or die "$ARGV[2]: $!";
+      open $new,   ">$ARGV[3]" or die "$ARGV[3]: $!";
+
+      # NYI
+      File::Rdiff::patch_file $base, $delta, $new;
+   } else {
+      print <<EOF;
+   $0 signature BASIS SIGNATURE
+   $0 delta SIGNATURE NEW DELTA
+   $0 patch BASE DELTA NEW
+   EOF
+      exit (1);
+   }
 
 =head1 SEE ALSO
 

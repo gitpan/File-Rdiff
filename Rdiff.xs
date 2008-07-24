@@ -2,7 +2,7 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#include "rsync.h"
+#include "librsync.h"
 
 /* try to be compatible with older perls */
 /* SvPV_nolen() macro first defined in 5.005_55 */
@@ -84,7 +84,7 @@ trace_cb (int level, char const *msg)
  * prefers.
  */
 static rs_result
-copy_cb (void *cb, off_t pos, size_t *len, void **buf)
+copy_cb (void *cb, rs_long_t pos, size_t *len, void **buf)
 {
   dSP;
   SV *rbuf;
